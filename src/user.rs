@@ -6,6 +6,7 @@ pub struct User {
   pub x: i32,
   pub y: i32,
   pub degree: i32,
+  pub life: i32,
 }
 
 impl User {

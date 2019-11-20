@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::f32;
+use std::sync::Mutex;
 use std::time::Instant;
 use ws::{Message, Sender};
-use std::sync::Mutex;
 
 use crate::bullet::Bullet;
 use crate::user::User;
@@ -17,20 +17,41 @@ pub struct Game {
 const WINDOW_WIDTH: i32 = 1080;
 const WINDOW_HEIGHT: i32 = 720;
 const SPEED: i32 = 10;
-const FPS: u32 = 30;
+const FPS: u32 = 60;
 impl Game {
   pub fn main(time: &mut Instant, out: &Sender, game: &Mutex<Game>) {
     if time.elapsed().as_millis() >= (1000. / (FPS as f32)) as u128 {
       let mut _game = game.lock().unwrap();
-      _game.bullets = _game.bullets.iter().filter(|b| {
-        b.x >= -10 && b.x <= WINDOW_WIDTH + 10 && b.y >= -10 && b.y <= WINDOW_HEIGHT + 10
-      }).cloned().collect();
+      _game.bullets = _game
+        .bullets
+        .iter()
+        .filter(|b| {
+          b.live && b.x >= -10 && b.x <= WINDOW_WIDTH + 10 && b.y >= -10 && b.y <= WINDOW_HEIGHT + 10
+        })
+        .cloned()
+        .collect();
       for bullet in _game.bullets.iter_mut() {
         bullet.set_position();
       }
+      _game.collision();
       out.broadcast(Message::from(_game.get_json())).unwrap();
       *time = Instant::now();
     }
+  }
+
+  fn collision(&mut self) {
+    let mut bullets = self.bullets.clone();
+    for user in self.users.iter_mut() {
+      for b in bullets.iter_mut() {
+        let dx = user.x - b.x;
+        let dy = user.y - b.y;
+        if dx * dx + dy * dy <= 650 {
+          user.life -= 1;
+          b.live = false;
+        }
+      }
+    }
+    self.bullets = bullets;
   }
 
   pub fn add_user(&mut self, id: &String, x: i32, y: i32, degree: i32) {
@@ -39,6 +60,7 @@ impl Game {
       x: x,
       y: y,
       degree: degree,
+      life: 100,
     });
   }
 
@@ -51,12 +73,13 @@ impl Game {
       .collect();
   }
 
-  fn add_bullet(&mut self, x: i32, y: i32, mx: i32, my:i32) {
+  fn add_bullet(&mut self, x: i32, y: i32, mx: i32, my: i32) {
     self.bullets.push(Bullet {
       x: x,
       y: y,
       mx: mx,
       my: my,
+      live: true,
     });
   }
 
@@ -97,7 +120,12 @@ impl Game {
         if f(&json, "shot") == 1 {
           let bx = user.x + (rad.cos() * 30.) as i32;
           let by = user.y + (rad.sin() * 30.) as i32;
-          self.add_bullet(bx, by, (rad.cos() * SPEED as f32) as i32, (rad.sin() * SPEED as f32) as i32);
+          self.add_bullet(
+            bx,
+            by,
+            (rad.cos() * SPEED as f32) as i32,
+            (rad.sin() * SPEED as f32) as i32,
+          );
         }
       }
     }

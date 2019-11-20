@@ -6,6 +6,7 @@ pub struct Bullet {
   pub y: i32,
   pub mx: i32,
   pub my: i32,
+  pub live: bool,
 }
 
 impl Bullet {
