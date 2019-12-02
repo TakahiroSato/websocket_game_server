@@ -7,6 +7,7 @@ pub struct User {
   pub y: i32,
   pub degree: i32,
   pub life: i32,
+  pub color: String,
 }
 
 impl User {

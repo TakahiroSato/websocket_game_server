@@ -1,3 +1,4 @@
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::f32;
@@ -53,12 +54,17 @@ impl Game {
     }
 
     pub fn add_user(&mut self, id: &String, x: i32, y: i32, degree: i32) {
+        let mut rng = rand::thread_rng();
+        let color: u32 = rng.gen();
+        let color = color >> 8;
+        let color = format!("#{:x}", color);
         self.users.push(User {
             id: id.to_string(),
             x: x,
             y: y,
             degree: degree,
             life: 100,
+            color: color,
         });
     }
 
@@ -133,5 +139,17 @@ impl Game {
     pub fn get_json(&self) -> String {
         let ret = serde_json::to_string(&self).unwrap();
         ret
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rand::Rng;
+    #[test]
+    fn rand_test() {
+        let mut rng = rand::thread_rng();
+        let col: u32 = rng.gen();
+        let col = col >> 8;
+        println!("{}", format!("#{:x}", col));
     }
 }
