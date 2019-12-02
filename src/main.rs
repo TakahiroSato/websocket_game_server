@@ -20,7 +20,7 @@ impl Handler for Server {
         let out = self.out.lock().unwrap();
         let mut g = self.game.lock().unwrap();
         let id = format!("id-{}", out.connection_id().to_string());
-        g.add_user(&id, 100, 100, 135);
+        g.add_user(&id);
         self.count.set(self.count.get() + 1);
         println!("count : {}", self.count.get());
         Ok(())

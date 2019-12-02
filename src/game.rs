@@ -13,8 +13,8 @@ pub struct Game {
     pub bullets: Vec<Bullet>,
 }
 
-const WINDOW_WIDTH: i32 = 1080;
-const WINDOW_HEIGHT: i32 = 720;
+const WINDOW_WIDTH: u32 = 1080;
+const WINDOW_HEIGHT: u32 = 720;
 const SPEED: i32 = 10;
 pub const FPS: f32 = 60.;
 impl Game {
@@ -25,9 +25,9 @@ impl Game {
             .filter(|b| {
                 b.live
                     && b.x >= -10
-                    && b.x <= WINDOW_WIDTH + 10
+                    && b.x <= WINDOW_WIDTH as i32 + 10
                     && b.y >= -10
-                    && b.y <= WINDOW_HEIGHT + 10
+                    && b.y <= WINDOW_HEIGHT as i32 + 10
             })
             .cloned()
             .collect();
@@ -53,16 +53,16 @@ impl Game {
         self.bullets = bullets;
     }
 
-    pub fn add_user(&mut self, id: &String, x: i32, y: i32, degree: i32) {
+    pub fn add_user(&mut self, id: &String) {
         let mut rng = rand::thread_rng();
         let color: u32 = rng.gen();
         let color = color >> 8;
         let color = format!("#{:x}", color);
         self.users.push(User {
             id: id.to_string(),
-            x: x,
-            y: y,
-            degree: degree,
+            x: (rng.gen::<u32>() % WINDOW_WIDTH) as i32,
+            y: (rng.gen::<u32>() % WINDOW_HEIGHT) as i32,
+            degree: rng.gen::<i32>() % 360,
             life: 100,
             color: color,
         });
